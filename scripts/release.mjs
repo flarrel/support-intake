@@ -5,6 +5,7 @@ import {
   copyFile, mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile,
 } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { createInterface } from 'node:readline';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -57,7 +58,16 @@ async function get(path) {
 
 async function withRelease(directory, check) {
   const { app, env } = releaseOptions(directory);
-  const child = spawn(process.execPath, ['app/start.mjs'], { cwd: app, env, stdio: 'inherit' });
+  const child = spawn(process.execPath, ['app/start.mjs'], {
+    cwd: app, env, stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  const output = createInterface({ input: child.stdout });
+  let listening = false;
+  output.on('line', (line) => {
+    console.log(line);
+    // A service already on this port must not satisfy this candidate's smoke check.
+    if (line === `Support Intake listening at ${url}`) listening = true;
+  });
   const done = new Promise((resolveExit) => {
     child.once('error', (error) => resolveExit(error));
     child.once('exit', (code, signal) => resolveExit({ code, signal }));
@@ -69,12 +79,15 @@ async function withRelease(directory, check) {
       if (child.exitCode !== null || child.signalCode !== null || !child.pid) {
         throw new Error(`Release process exited before it was ready: ${JSON.stringify(await done)}`);
       }
-      try {
-        health = await get('/health');
-        break;
-      } catch {
-        await delay(250);
+      if (listening) {
+        try {
+          health = await get('/health');
+          break;
+        } catch {
+          // The candidate may be starting its first connection.
+        }
       }
+      await delay(250);
     }
     assert.equal(health?.status, 'ok', 'Packaged app did not become ready');
     await check();
