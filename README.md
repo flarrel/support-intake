@@ -1,6 +1,6 @@
 # Support Intake
 
-Support Intake suggests one of 77 banking-support intents for a request. Paste the request text or upload a PNG or JPEG screenshot. A reviewer can confirm or correct the suggestion and see the review history. Screenshots and uncertain text requests go to manual review.
+Support Intake is a local triage queue for banking-support requests. It reads typed requests and PNG or JPEG screenshots, then suggests a category from 77 banking-support intents. It routes higher-confidence typed requests automatically and sends uncertain text and all screenshots to manual review. Reviewers can confirm or change the suggested category and see past decisions.
 
 ## Run on an Apple Silicon Mac
 
@@ -15,9 +15,9 @@ export TMPDIR="$runtime/tmp" npm_config_cache="$runtime/cache/npm"
 npm start
 ```
 
-Open <http://127.0.0.1:4317>. Try “I lost my card and need a new one,” then submit a screenshot of the same text. Open the review queue to confirm or adjust the screenshot's suggestion.
+Open <http://127.0.0.1:4317>. Submit a request from the intake form and use the **Needs review** filter to find tickets awaiting a decision. To review a ticket, choose an intent and save it with an optional note.
 
-Setup installs Node.js, Python/Node dependencies, and the matching headless browser in the local project. It verifies the pinned data and trains the model on the CPU. The app starts a loopback-only PostgreSQL instance on port 54327. Override `SUPPORT_PORT` and `SUPPORT_DB_PORT` for a second instance with its own `SUPPORT_RUNTIME`. Tickets and model files are stored in the runtime directory. Screenshot bytes are removed after inference.
+Setup installs the application and test dependencies, verifies the source data, and trains the model on the CPU. The app starts PostgreSQL on loopback port 54327. To run a second instance, set distinct values for `SUPPORT_PORT`, `SUPPORT_DB_PORT`, and `SUPPORT_RUNTIME`. PostgreSQL stores the request text and review history. Uploaded image files are removed after processing.
 
 ## API
 
@@ -32,7 +32,7 @@ Setup installs Node.js, Python/Node dependencies, and the matching headless brow
 
 A successful submission returns 201. A stale review returns 409 and leaves the original review intact. Images are limited to 3 MiB and 12 megapixels.
 
-## Model and evaluation
+## Routing model and benchmarks
 
 The neural text model averages learned token embeddings and uses a multilayer classifier. A TF-IDF logistic-regression model is the comparison baseline. The data uses 8,002 training examples, 2,001 validation examples, and the untouched 3,080-example Banking77 test split. Validation selects the confidence cutoff. Macro-F1 on the test split was **0.881** for the baseline and **0.847** for the neural model, which powers the app. The neural cutoff routed **3,016/3,080** typed examples at **85.88% accuracy** and queued 64 for review.
 
@@ -46,7 +46,7 @@ export PYTHONPYCACHEPREFIX="$runtime/pycache"
 
 The runtime directory receives `evaluation-text.json` and `evaluation-images.json`, which include per-intent errors and fixture-level results. Banking77 is © PolyAI Limited under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See the [upstream data](https://github.com/PolyAI-LDN/task-specific-datasets/tree/master/banking_data) and [Casanueva et al. (2020)](https://aclanthology.org/2020.nlp4convai-1.5/).
 
-## Verify and rehearse a release
+## Tests and local releases
 
 Use a disposable runtime for integration and browser tests because they write tickets and inject a database failure. With the setup environment above, start a separate test app:
 
