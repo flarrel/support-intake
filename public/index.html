@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172d2a">
+  <title>Support Intake</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <h1>Support Intake</h1>
+    </div>
+  </header>
+  <main class="workspace">
+    <section class="panel intake" aria-labelledby="intake-heading">
+      <div class="intake-heading">
+        <h2 id="intake-heading">New ticket</h2>
+        <p>Submit a banking support request as text or a screenshot.</p>
+      </div>
+      <form id="intake-form">
+        <div class="mode-switch" role="group" aria-label="Input type">
+          <button type="button" id="text-mode" aria-pressed="true">Text</button>
+          <button type="button" id="image-mode" aria-pressed="false">Screenshot</button>
+        </div>
+        <div id="text-input">
+          <label for="ticket-text">Request text</label>
+          <textarea id="ticket-text" rows="4" required></textarea>
+        </div>
+        <div id="image-input" hidden>
+          <label for="ticket-image">Screenshot</label>
+          <input id="ticket-image" type="file" accept="image/png,image/jpeg" aria-describedby="image-help" disabled>
+          <p class="hint" id="image-help">Choose a PNG or JPEG containing the request.</p>
+        </div>
+        <div class="form-actions">
+          <button class="primary" type="submit" id="submit-ticket">Submit ticket</button>
+          <p class="message" id="intake-message" role="status"></p>
+        </div>
+      </form>
+    </section>
+
+    <div class="ticket-workspace">
+      <section class="panel queue" aria-labelledby="queue-heading">
+        <div class="panel-header">
+          <div class="queue-title">
+            <h2 id="queue-heading">Ticket queue</h2>
+            <span id="queue-count" class="count" aria-label="Tickets shown" hidden></span>
+          </div>
+          <label class="sr-only" for="queue-filter">Filter ticket queue</label>
+          <select id="queue-filter">
+            <option value="">All tickets</option>
+            <option value="review">Needs review</option>
+            <option value="routed">Routed</option>
+          </select>
+        </div>
+        <p id="queue-message" class="queue-message" role="status">Loading tickets…</p>
+        <ul id="ticket-list" class="ticket-list"></ul>
+      </section>
+
+      <section class="panel detail" aria-labelledby="detail-heading">
+        <div class="panel-header">
+          <h2 id="detail-heading">Ticket details</h2>
+          <span id="detail-status" class="status" hidden></span>
+        </div>
+        <p class="detail-message" id="detail-message" role="status">Select a ticket to review its request and routing.</p>
+        <div id="ticket-detail" hidden>
+          <dl class="ticket-meta">
+            <div>
+              <dt>Ticket</dt>
+              <dd id="detail-id"></dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd id="detail-source"></dd>
+            </div>
+            <div>
+              <dt id="detail-intent-label">Suggested intent</dt>
+              <dd id="detail-intent"></dd>
+            </div>
+            <div>
+              <dt>Original model confidence</dt>
+              <dd id="detail-confidence"></dd>
+            </div>
+          </dl>
+          <div class="request">
+            <h3 id="detail-text-label">Request text</h3>
+            <p id="detail-text"></p>
+          </div>
+          <form id="review-form" class="review-form">
+            <h3>Review routing</h3>
+            <label for="review-intent">Intent</label>
+            <select id="review-intent" required></select>
+            <label for="review-note">Review note <span class="optional">(optional)</span></label>
+            <textarea id="review-note" rows="2"></textarea>
+            <div class="form-actions">
+              <button class="primary" type="submit" id="save-review" disabled>Save review</button>
+              <p class="message" id="review-message" role="status"></p>
+            </div>
+          </form>
+          <section class="history" aria-labelledby="history-heading">
+            <h3 id="history-heading">Review history</h3>
+            <p id="history-empty" class="hint">No reviews yet.</p>
+            <ul id="ticket-history"></ul>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
